@@ -96,16 +96,13 @@ public class CommitStatusUpdater {
                             LOGGER.log(
                                     Level.INFO,
                                     String.format(
-                                            "Git project '%s' detected. Check if this is feature branch",
-                                            gitLabBranchBuild.getProjectId()));
+                                            "Git project '%s' detected. Check if '%s' is a feature branch",
+                                            gitLabBranchBuild.getProjectId(), getBuildBranchOrTag(build, environment)));
                             int matchBranch =
                                     StringUtils.indexOfAny(getBuildBranchOrTag(build, environment), new String[] {
-                                        "DV-6050/move_sanitizers_to_gitlab_test_3",
-                                        "master",
-                                        "driverless-release",
-                                        "release-staging",
-                                        "release-candidate"
+                                        "master", "driverless-release", "release-staging", "release-candidate"
                                     });
+
                             if (matchBranch == -1) {
                                 LOGGER.log(Level.INFO, "Looks like feature branch. Skip updating build status");
                                 gitStatusUpdateEnabled = Boolean.FALSE;
@@ -115,7 +112,10 @@ public class CommitStatusUpdater {
                             LOGGER.log(
                                     Level.INFO,
                                     String.format(
-                                            "Updating build '%s' to '%s'", gitLabBranchBuild.getProjectId(), state));
+                                            "Updating build '%s' '%s' to '%s'",
+                                            gitLabBranchBuild.getProjectId(),
+                                            getBuildBranchOrTag(build, environment),
+                                            state));
                             current_client.changeBuildStatus(
                                     gitLabBranchBuild.getProjectId(),
                                     gitLabBranchBuild.getRevisionHash(),
