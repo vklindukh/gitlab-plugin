@@ -91,17 +91,40 @@ public class CommitStatusUpdater {
 
                     if (existsCommit(
                             current_client, gitLabBranchBuild.getProjectId(), gitLabBranchBuild.getRevisionHash())) {
-                        LOGGER.log(
-                                Level.INFO,
-                                String.format("Updating build '%s' to '%s'", gitLabBranchBuild.getProjectId(), state));
-                        current_client.changeBuildStatus(
-                                gitLabBranchBuild.getProjectId(),
-                                gitLabBranchBuild.getRevisionHash(),
-                                state,
-                                getBuildBranchOrTag(build, environment),
-                                current_build_name,
-                                buildUrl,
-                                state.name());
+                        Boolean gitStatusUpdateEnabled = Boolean.TRUE;
+                        if (gitLabBranchBuild.getProjectId().equals("AVST/av-stack")) {
+                            LOGGER.log(
+                                    Level.INFO,
+                                    String.format(
+                                            "Git project '%s' detected. Check if this is feature branch",
+                                            gitLabBranchBuild.getProjectId()));
+                            int matchBranch =
+                                    StringUtils.indexOfAny(getBuildBranchOrTag(build, environment), new String[] {
+                                        "DV-6050/move_sanitizers_to_gitlab_test_3",
+                                        "master",
+                                        "driverless-release",
+                                        "release-staging",
+                                        "release-candidate"
+                                    });
+                            if (matchBranch == -1) {
+                                LOGGER.log(Level.INFO, "Looks like feature branch. Skip updating build status");
+                                gitStatusUpdateEnabled = Boolean.FALSE;
+                            }
+                        }
+                        if (gitStatusUpdateEnabled) {
+                            LOGGER.log(
+                                    Level.INFO,
+                                    String.format(
+                                            "Updating build '%s' to '%s'", gitLabBranchBuild.getProjectId(), state));
+                            current_client.changeBuildStatus(
+                                    gitLabBranchBuild.getProjectId(),
+                                    gitLabBranchBuild.getRevisionHash(),
+                                    state,
+                                    getBuildBranchOrTag(build, environment),
+                                    current_build_name,
+                                    buildUrl,
+                                    state.name());
+                        }
                     }
                 } catch (WebApplicationException | ProcessingException e) {
                     printf(
